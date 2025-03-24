@@ -24,8 +24,8 @@
   "include": [
     "client/src/**/*",
     "shared/**/*",
-    "server/**/*",
-    "vite.config.ts"
+    "server/**/*"
   ],
+  "exclude": ["vite.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
