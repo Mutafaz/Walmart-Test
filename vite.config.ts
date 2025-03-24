@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
+      "@": path.resolve(__dirname, "./client/src"),
       "@shared": path.resolve(__dirname, "shared"),
     },
   },
@@ -32,5 +32,13 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/client"),
     emptyOutDir: true,
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
 });
