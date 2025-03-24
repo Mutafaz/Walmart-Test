@@ -56,3 +56,33 @@ export type Receipt = typeof receipts.$inferSelect;
 
 export type InsertReceiptItem = z.infer<typeof insertReceiptItemSchema>;
 export type ReceiptItem = typeof receiptItems.$inferSelect;
+
+export const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+});
+
+export const ReceiptItemSchema = z.object({
+  id: z.string(),
+  receiptId: z.string(),
+  name: z.string(),
+  price: z.string(),
+  quantity: z.string(),
+});
+
+export const ReceiptSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  storeName: z.string(),
+  date: z.string(),
+  items: z.array(ReceiptItemSchema),
+  subtotal: z.string(),
+  taxRate: z.string(),
+  taxAmount: z.string(),
+  total: z.string(),
+});
+
+export type User = z.infer<typeof UserSchema>;
+export type Receipt = z.infer<typeof ReceiptSchema>;
+export type ReceiptItem = z.infer<typeof ReceiptItemSchema>;

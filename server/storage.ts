@@ -89,3 +89,10 @@ export class MemStorage implements IStorage {
 
 // Export instance for use in application
 export const storage = new MemStorage();
+
+// In-memory storage
+const _users: User[] = [];
+const _receipts: Receipt[] = [];
+const _receiptItems: ReceiptItem[] = [];
+
+export { _users as users, _receipts as receipts, _receiptItems as receiptItems };

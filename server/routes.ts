@@ -166,6 +166,10 @@ export async function registerRoutes(app: express.Express): Promise<Server> {
     res.json({ message: "PDF generation handled client-side" });
   });
 
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok' });
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 
