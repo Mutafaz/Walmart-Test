@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertReceiptSchema, insertReceiptItemSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { ReceiptSchema, ReceiptItemSchema, UserSchema } from '@shared/schema';
 
 const router = express.Router();
 
@@ -99,10 +100,10 @@ export async function registerRoutes(app: express.Express): Promise<Server> {
   });
 
   // Create a new receipt
-  app.post("/api/receipts", async (req: express.Request, res: express.Response) => {
+  app.post("/api/receipts", async (req, res) => {
     try {
       // Validate receipt data
-      const receiptData = insertReceiptSchema.parse(req.body);
+      const receiptData = ReceiptSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(req.body);
       
       // Create receipt
       const receipt = await storage.createReceipt(receiptData);
@@ -136,7 +137,7 @@ export async function registerRoutes(app: express.Express): Promise<Server> {
       const createdItems = [];
       
       for (const item of items) {
-        const itemData = insertReceiptItemSchema.parse({
+        const itemData = ReceiptItemSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse({
           ...item,
           receiptId
         });
@@ -168,6 +169,81 @@ export async function registerRoutes(app: express.Express): Promise<Server> {
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  // User routes
+  app.post('/api/users', async (req, res) => {
+    try {
+      const userData = UserSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(req.body);
+      const user = await storage.createUser(userData);
+      res.json(user);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: fromZodError(error).message });
+      } else {
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    }
+  });
+
+  app.get('/api/users/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUserById(id);
+      if (!user) {
+        res.status(404).json({ error: 'User not found' });
+      } else {
+        res.json(user);
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Receipt routes
+  app.get('/api/users/:userId/receipts', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const receipts = await storage.getReceiptsByUserId(userId);
+      res.json(receipts);
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Receipt item routes
+  app.post('/api/receipt-items', async (req, res) => {
+    try {
+      const itemData = ReceiptItemSchema.omit({ id: true, createdAt: true, updatedAt: true }).parse(req.body);
+      const item = await storage.createReceiptItem(itemData);
+      res.json(item);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: fromZodError(error).message });
+      } else {
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    }
+  });
+
+  app.get('/api/receipts/:receiptId/items', async (req, res) => {
+    try {
+      const receiptId = parseInt(req.params.receiptId);
+      const items = await storage.getReceiptItemsByReceiptId(receiptId);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.delete('/api/receipt-items/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteReceiptItem(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   });
 
   // Create HTTP server

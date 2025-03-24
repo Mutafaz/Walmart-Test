@@ -1,98 +1,70 @@
-import { users, type User, type InsertUser, 
-         receipts, type Receipt, type InsertReceipt,
-         receiptItems, type ReceiptItem, type InsertReceiptItem } from "@shared/schema";
-
-// Interface for storage operations
-export interface IStorage {
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  
-  // Receipt operations
-  getAllReceipts(): Promise<Receipt[]>;
-  getReceiptById(id: number): Promise<Receipt | undefined>;
-  createReceipt(receipt: InsertReceipt): Promise<Receipt>;
-  
-  // Receipt item operations
-  getReceiptItems(receiptId: number): Promise<ReceiptItem[]>;
-  createReceiptItem(item: InsertReceiptItem): Promise<ReceiptItem>;
-}
-
-// In-memory storage implementation
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private receipts: Map<number, Receipt>;
-  private receiptItems: Map<number, ReceiptItem>;
-  
-  private userId: number;
-  private receiptId: number;
-  private itemId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.receipts = new Map();
-    this.receiptItems = new Map();
-    
-    this.userId = 1;
-    this.receiptId = 1;
-    this.itemId = 1;
-  }
-
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
-  
-  // Receipt methods
-  async getAllReceipts(): Promise<Receipt[]> {
-    return Array.from(this.receipts.values());
-  }
-  
-  async getReceiptById(id: number): Promise<Receipt | undefined> {
-    return this.receipts.get(id);
-  }
-  
-  async createReceipt(insertReceipt: InsertReceipt): Promise<Receipt> {
-    const id = this.receiptId++;
-    const receipt: Receipt = { ...insertReceipt, id, userId: insertReceipt.userId ?? null };
-    this.receipts.set(id, receipt);
-    return receipt;
-  }
-  
-  // Receipt item methods
-  async getReceiptItems(receiptId: number): Promise<ReceiptItem[]> {
-    return Array.from(this.receiptItems.values())
-      .filter(item => item.receiptId === receiptId);
-  }
-  
-  async createReceiptItem(insertItem: InsertReceiptItem): Promise<ReceiptItem> {
-    const id = this.itemId++;
-    const item: ReceiptItem = { ...insertItem, id };
-    this.receiptItems.set(id, item);
-    return item;
-  }
-}
-
-// Export instance for use in application
-export const storage = new MemStorage();
+import { nanoid } from 'nanoid';
+import { Receipt, ReceiptItem, User } from '@shared/schema';
 
 // In-memory storage
 const _users: User[] = [];
 const _receipts: Receipt[] = [];
 const _receiptItems: ReceiptItem[] = [];
 
-export { _users as users, _receipts as receipts, _receiptItems as receiptItems };
+// User operations
+export async function createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+  const newUser: User = {
+    id: parseInt(nanoid()),
+    ...user,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  _users.push(newUser);
+  return newUser;
+}
+
+export async function getUserById(id: number): Promise<User | undefined> {
+  return _users.find(user => user.id === id);
+}
+
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  return _users.find(user => user.email === email);
+}
+
+// Receipt operations
+export async function createReceipt(receipt: Omit<Receipt, 'id' | 'createdAt' | 'updatedAt'>): Promise<Receipt> {
+  const newReceipt: Receipt = {
+    id: parseInt(nanoid()),
+    ...receipt,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  _receipts.push(newReceipt);
+  return newReceipt;
+}
+
+export async function getReceiptById(id: number): Promise<Receipt | undefined> {
+  return _receipts.find(receipt => receipt.id === id);
+}
+
+export async function getReceiptsByUserId(userId: number): Promise<Receipt[]> {
+  return _receipts.filter(receipt => receipt.userId === userId);
+}
+
+// Receipt item operations
+export async function createReceiptItem(item: Omit<ReceiptItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ReceiptItem> {
+  const newItem: ReceiptItem = {
+    id: parseInt(nanoid()),
+    ...item,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  _receiptItems.push(newItem);
+  return newItem;
+}
+
+export async function getReceiptItemsByReceiptId(receiptId: number): Promise<ReceiptItem[]> {
+  return _receiptItems.filter(item => item.receiptId === receiptId);
+}
+
+export async function deleteReceiptItem(id: number): Promise<void> {
+  const index = _receiptItems.findIndex(item => item.id === id);
+  if (index !== -1) {
+    _receiptItems.splice(index, 1);
+  }
+}

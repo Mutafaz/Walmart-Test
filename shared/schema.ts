@@ -1,64 +1,39 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
+import { z } from 'zod';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { pgTable, text, serial, integer, timestamp } from 'drizzle-orm/pg-core';
 
-// User schema for auth purposes
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Database table definitions
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const receipts = pgTable('receipts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id),
+  storeName: text('store_name').notNull(),
+  date: timestamp('date').notNull(),
+  total: integer('total').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
 });
 
-// Receipt schema for storing receipt data
-export const receipts = pgTable("receipts", {
-  id: serial("id").primaryKey(),
-  storeNumber: text("store_number").notNull(),
-  storeAddress: text("store_address").notNull(),
-  storeCity: text("store_city").notNull(),
-  storeStateZip: text("store_state_zip").notNull(),
-  storePhone: text("store_phone").notNull(),
-  receiptDate: text("receipt_date").notNull(),
-  cashier: text("cashier").notNull(),
-  register: text("register").notNull(),
-  taxRate: text("tax_rate").notNull(),
-  paymentMethod: text("payment_method").notNull(),
-  userId: integer("user_id").references(() => users.id),
+export const receiptItems = pgTable('receipt_items', {
+  id: serial('id').primaryKey(),
+  receiptId: integer('receipt_id').references(() => receipts.id),
+  name: text('name').notNull(),
+  price: integer('price').notNull(),
+  quantity: integer('quantity').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
 });
 
-export const insertReceiptSchema = createInsertSchema(receipts).omit({
-  id: true,
-});
-
-// Receipt items schema for storing items on a receipt
-export const receiptItems = pgTable("receipt_items", {
-  id: serial("id").primaryKey(),
-  receiptId: integer("receipt_id").references(() => receipts.id).notNull(),
-  name: text("name").notNull(),
-  price: text("price").notNull(),
-  quantity: text("quantity").notNull(),
-});
-
-export const insertReceiptItemSchema = createInsertSchema(receiptItems).omit({
-  id: true,
-});
-
-// Types
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
-export type InsertReceipt = z.infer<typeof insertReceiptSchema>;
-export type Receipt = typeof receipts.$inferSelect;
-
-export type InsertReceiptItem = z.infer<typeof insertReceiptItemSchema>;
-export type ReceiptItem = typeof receiptItems.$inferSelect;
-
+// Zod schemas for validation
 export const UserSchema = z.object({
-  id: z.string(),
+  id: z.number(),
   name: z.string(),
   email: z.string().email(),
   createdAt: z.date(),
@@ -66,8 +41,8 @@ export const UserSchema = z.object({
 });
 
 export const ReceiptItemSchema = z.object({
-  id: z.string(),
-  receiptId: z.string(),
+  id: z.number(),
+  receiptId: z.number(),
   name: z.string(),
   price: z.number(),
   quantity: z.number(),
@@ -76,8 +51,8 @@ export const ReceiptItemSchema = z.object({
 });
 
 export const ReceiptSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
+  id: z.number(),
+  userId: z.number().nullable(),
   storeName: z.string(),
   date: z.date(),
   total: z.number(),
@@ -91,11 +66,11 @@ export type Receipt = z.infer<typeof ReceiptSchema>;
 export type ReceiptItem = z.infer<typeof ReceiptItemSchema>;
 
 // Create insert schemas
-export const insertUserSchema = createInsertSchema(UserSchema);
-export const insertReceiptSchema = createInsertSchema(ReceiptSchema);
-export const insertReceiptItemSchema = createInsertSchema(ReceiptItemSchema);
+export const insertUserSchema = createInsertSchema(users);
+export const insertReceiptSchema = createInsertSchema(receipts);
+export const insertReceiptItemSchema = createInsertSchema(receiptItems);
 
 // Create select schemas
-export const selectUserSchema = createSelectSchema(UserSchema);
-export const selectReceiptSchema = createSelectSchema(ReceiptSchema);
-export const selectReceiptItemSchema = createSelectSchema(ReceiptItemSchema);
+export const selectUserSchema = createSelectSchema(users);
+export const selectReceiptSchema = createSelectSchema(receipts);
+export const selectReceiptItemSchema = createSelectSchema(receiptItems);
