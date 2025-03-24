@@ -1,11 +1,10 @@
 import express from 'express';
 import { z } from 'zod';
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertReceiptSchema, insertReceiptItemSchema } from "@shared/schema";
+import * as storage from "./storage";
+import { ReceiptSchema, ReceiptItemSchema, UserSchema } from '@shared/schema';
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { ReceiptSchema, ReceiptItemSchema, UserSchema } from '@shared/schema';
 
 const router = express.Router();
 
@@ -42,10 +41,10 @@ const fetchProductSchema = z.object({
 });
 
 // Product fetching endpoint
-router.post('/fetch-product', async (req, res) => {
+router.post('/fetch-product', async (_req, res) => {
   try {
     // Validate request body
-    const { url } = fetchProductSchema.parse(req.body);
+    const { url } = fetchProductSchema.parse(_req.body);
 
     // Parse product info from URL
     const productInfo = parseProductFromUrl(url);
@@ -62,7 +61,7 @@ router.post('/fetch-product', async (req, res) => {
 
 export async function registerRoutes(app: express.Express): Promise<Server> {
   // Add CORS middleware
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((_req: express.Request, res: express.Response, next: express.NextFunction) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
@@ -72,7 +71,7 @@ export async function registerRoutes(app: express.Express): Promise<Server> {
   // API Routes for receipts
   
   // Get all receipts
-  app.get("/api/receipts", async (req: express.Request, res: express.Response) => {
+  app.get("/api/receipts", async (_req: express.Request, res: express.Response) => {
     try {
       const receipts = await storage.getAllReceipts();
       res.json(receipts);
@@ -83,9 +82,9 @@ export async function registerRoutes(app: express.Express): Promise<Server> {
   });
 
   // Get a receipt by ID
-  app.get("/api/receipts/:id", async (req: express.Request, res: express.Response) => {
+  app.get("/api/receipts/:id", async (_req: express.Request, res: express.Response) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(_req.params.id);
       const receipt = await storage.getReceiptById(id);
       
       if (!receipt) {
@@ -160,7 +159,7 @@ export async function registerRoutes(app: express.Express): Promise<Server> {
   });
 
   // Generate PDF route
-  app.post("/api/generate-pdf", (req: express.Request, res: express.Response) => {
+  app.post("/api/generate-pdf", (_req: express.Request, res: express.Response) => {
     // In a production environment, this would use a PDF generation library
     // and return a PDF buffer or URL, but we're handling this client-side
     // with html2canvas and jsPDF for this implementation
