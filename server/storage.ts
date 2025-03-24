@@ -7,15 +7,15 @@ const _receipts: Receipt[] = [];
 const _receiptItems: ReceiptItem[] = [];
 
 // User operations
-export async function createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-  const newUser: User = {
+export async function createUser(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+  const user: User = {
+    ...data,
     id: parseInt(nanoid()),
-    ...user,
     createdAt: new Date(),
     updatedAt: new Date()
   };
-  _users.push(newUser);
-  return newUser;
+  _users.push(user);
+  return user;
 }
 
 export async function getUserById(id: number): Promise<User | undefined> {
@@ -27,19 +27,23 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
 }
 
 // Receipt operations
-export async function createReceipt(receipt: Omit<Receipt, 'id' | 'createdAt' | 'updatedAt'>): Promise<Receipt> {
-  const newReceipt: Receipt = {
+export async function createReceipt(data: Omit<Receipt, 'id' | 'createdAt' | 'updatedAt'>): Promise<Receipt> {
+  const receipt: Receipt = {
+    ...data,
     id: parseInt(nanoid()),
-    ...receipt,
     createdAt: new Date(),
     updatedAt: new Date()
   };
-  _receipts.push(newReceipt);
-  return newReceipt;
+  _receipts.push(receipt);
+  return receipt;
 }
 
 export async function getReceiptById(id: number): Promise<Receipt | undefined> {
   return _receipts.find(receipt => receipt.id === id);
+}
+
+export async function getAllReceipts(): Promise<Receipt[]> {
+  return _receipts;
 }
 
 export async function getReceiptsByUserId(userId: number): Promise<Receipt[]> {
@@ -47,15 +51,15 @@ export async function getReceiptsByUserId(userId: number): Promise<Receipt[]> {
 }
 
 // Receipt item operations
-export async function createReceiptItem(item: Omit<ReceiptItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ReceiptItem> {
-  const newItem: ReceiptItem = {
+export async function createReceiptItem(data: Omit<ReceiptItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ReceiptItem> {
+  const item: ReceiptItem = {
+    ...data,
     id: parseInt(nanoid()),
-    ...item,
     createdAt: new Date(),
     updatedAt: new Date()
   };
-  _receiptItems.push(newItem);
-  return newItem;
+  _receiptItems.push(item);
+  return item;
 }
 
 export async function getReceiptItemsByReceiptId(receiptId: number): Promise<ReceiptItem[]> {
