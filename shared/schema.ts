@@ -1,5 +1,5 @@
 import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // User schema for auth purposes
@@ -61,28 +61,41 @@ export const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string().email(),
+  createdAt: z.date(),
+  updatedAt: z.date()
 });
 
 export const ReceiptItemSchema = z.object({
   id: z.string(),
   receiptId: z.string(),
   name: z.string(),
-  price: z.string(),
-  quantity: z.string(),
+  price: z.number(),
+  quantity: z.number(),
+  createdAt: z.date(),
+  updatedAt: z.date()
 });
 
 export const ReceiptSchema = z.object({
   id: z.string(),
   userId: z.string(),
   storeName: z.string(),
-  date: z.string(),
-  items: z.array(ReceiptItemSchema),
-  subtotal: z.string(),
-  taxRate: z.string(),
-  taxAmount: z.string(),
-  total: z.string(),
+  date: z.date(),
+  total: z.number(),
+  createdAt: z.date(),
+  updatedAt: z.date()
 });
 
+// Infer types from schemas
 export type User = z.infer<typeof UserSchema>;
 export type Receipt = z.infer<typeof ReceiptSchema>;
 export type ReceiptItem = z.infer<typeof ReceiptItemSchema>;
+
+// Create insert schemas
+export const insertUserSchema = createInsertSchema(UserSchema);
+export const insertReceiptSchema = createInsertSchema(ReceiptSchema);
+export const insertReceiptItemSchema = createInsertSchema(ReceiptItemSchema);
+
+// Create select schemas
+export const selectUserSchema = createSelectSchema(UserSchema);
+export const selectReceiptSchema = createSelectSchema(ReceiptSchema);
+export const selectReceiptItemSchema = createSelectSchema(ReceiptItemSchema);
