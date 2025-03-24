@@ -33,6 +33,11 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/client"),
     emptyOutDir: true,
     sourcemap: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, "client/index.html"),
+      },
+    },
   },
   server: {
     port: 3000,
