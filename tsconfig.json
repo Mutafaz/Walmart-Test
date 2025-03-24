@@ -1,6 +1,4 @@
 {
-  "include": ["client/src", "server", "shared"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -23,5 +21,11 @@
       "@shared/*": ["shared/*"]
     }
   },
+  "include": [
+    "client/src/**/*",
+    "shared/**/*",
+    "server/**/*",
+    "vite.config.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
